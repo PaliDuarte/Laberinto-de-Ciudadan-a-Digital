@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>El Laberinto de la Ciudadanía Digital y ESI</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;padding:10px;min-height:100vh;color:#fff;font:700 16px/1.45 Nunito,system-ui,sans-serif;text-align:center;background:linear-gradient(135deg,#1a0b3d,#4c1d95,#0e7490,#1a0b3d);background-size:300% 300%;animation:bg 16s ease infinite}
+@keyframes bg{50%{background-position:100% 50%}}
+h1{font:800 clamp(1.4rem,5vw,2.3rem)/1.1 "Baloo 2",system-ui,sans-serif;margin:4px 0;background:linear-gradient(90deg,#ffd23f,#ff6bd6,#5eead4);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{margin:0 0 6px;opacity:.9}
+.chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:6px 0}
+.chip{background:rgba(255,255,255,.16);border-radius:999px;padding:4px 12px}
+canvas{display:block;margin:8px auto;border-radius:16px;max-width:100%;border:4px solid #ffd23f;box-shadow:0 0 24px #ff6bd6aa,0 0 0 4px #7c3aed;touch-action:none;background:#120a2e}
+button{font:800 1rem "Baloo 2",system-ui,sans-serif;color:#2a1450;background:#ffd23f;border:0;border-radius:14px;padding:8px 16px;margin:3px;cursor:pointer;box-shadow:0 4px 0 #b8860b}
+button:active{transform:translateY(3px);box-shadow:0 1px 0 #b8860b}
+button:disabled{opacity:.4}
+.avb{font-size:1.5rem}.avb.sel{outline:4px solid #5eead4}
+#dp{display:grid;grid-template-columns:repeat(3,60px);gap:6px;justify-content:center;margin:6px auto}
+#dp button{height:56px;font-size:1.4rem;padding:0}
+#mu{position:fixed;top:calc(8px + env(safe-area-inset-top,0px));right:8px;z-index:6;font-size:1.3rem}
+#mo{position:fixed;inset:0;background:rgba(10,4,30,.75);display:flex;align-items:center;justify-content:center;padding:14px;z-index:5}
+#mo[hidden]{display:none}
+#bx{background:linear-gradient(160deg,#3b1a7a,#1e1b4b);border:4px solid #ffd23f;border-radius:22px;padding:18px;max-width:500px;width:100%;max-height:88vh;overflow:auto;animation:pop .3s}
+@keyframes pop{from{transform:scale(.7);opacity:0}}
+#bx h3{font:800 1.4rem "Baloo 2",system-ui,sans-serif;margin:0 0 6px;color:#ffd23f}
+#bx .big{font-size:3rem;animation:bob 1.2s infinite}
+@keyframes bob{50%{transform:translateY(-8px)}}
+#bx p{font-size:1.05rem;margin:8px 0}
+#bx .o{display:block;width:100%;text-align:left;color:#fff;background:#6d28d9;box-shadow:0 4px 0 #3b0f8c;margin:8px 0}
+</style></head><body>
+<button id="mu" aria-label="Sonido">🔊</button>
+<h1>🧭 El Laberinto de la Ciudadanía Digital y ESI</h1>
+<p class="sub" id="lt"></p>
+<div class="chips" id="st"></div>
+<canvas id="cv"></canvas>
+<div id="dp"><span></span><button onclick="mv(0,-1)" aria-label="Arriba">▲</button><span></span><button onclick="mv(-1,0)" aria-label="Izquierda">◀</button><button onclick="mv(0,1)" aria-label="Abajo">▼</button><button onclick="mv(1,0)" aria-label="Derecha">▶</button></div>
+<div>Tu animal (se desbloquean más con sabiduría):</div><div id="av"></div>
+<div id="mo" hidden><div id="bx"></div></div>
+<script>
+const $=id=>document.getElementById(id),W=17,H=13,cv=$("cv"),cx=cv.getContext("2d"),F=[.3,.55,.8];
+const AV=[["🦊",0],["🐱",0],["🐸",30],["🦉",70],["🦄",120]];
+const TIPS=["Antes de publicar, contá hasta 5 y pensá: ¿esto me representa? Si dudás, preguntale a una persona adulta de confianza.","Si algo te da mala espina, confiá en esa sensación y pedí ayuda.","Dudá primero, compartí después.","Pedir ayuda no es de débiles: es de personas que se cuidan."];
+const L=[
+{t:"Huella digital y privacidad",e:"👣",h:265,s:11,
+c:[["Tu huella digital","Todo lo que subís, comentás o en lo que te etiquetan queda guardado en internet, a veces por años. Antes de publicar, mostráselo a tu familia o a una persona adulta de confianza y pensá: ¿está bien que lo vea cualquier persona?"],
+["Datos personales","Tu dirección, tu escuela, tu ubicación y tus claves son datos privados. Antes de compartirlos, consultá con tu familia o una persona adulta de confianza, y usá perfiles en modo privado."],
+["Netiqueta y respeto","Netiqueta son las buenas maneras en internet: escribir con respeto, no gritar con MAYÚSCULAS y no burlarse de nadie. Antes de subir una foto de otra persona, pedile permiso: si te dice que no, se respeta. Del otro lado hay una persona real."]],
+q:[["Querés subir una foto y tenés la ubicación en vivo activada. ¿Qué es mejor?","Desactivar la ubicación y publicar después","Dejarla activada, no pasa nada","Etiquetar el lugar para que me encuentren"],
+["Alguien comparte en un grupo una foto tuya sin preguntarte. ¿Qué podés hacer?","Pedir que la borre y contárselo a un adulto de confianza","Quedarme en silencio y aguantar","Subir una foto suya para vengarme"],
+["Sacaste una foto muy graciosa de una persona de tu curso. ¿Qué hacés antes de subirla?","Le pregunto si está de acuerdo y, si dice que no, no la subo","La subo igual, es solo una broma","La subo y le aviso después"]]},
+{t:"Claves seguras y trampas online",e:"🔐",h:190,s:27,
+c:[["Claves seguras","Una clave fuerte es larga y mezcla letras, números y símbolos. No uses tu nombre ni tu fecha de nacimiento, y no repitas la misma en todas tus cuentas."],
+["Ojo con el phishing","Phishing es un mensaje trampa que se hace pasar por una empresa o alguien conocido y te apura para que hagas clic o des tus datos. Si te apura mucho, desconfiá."],
+["Dos pasos, dos candados","La verificación en dos pasos es como ponerle dos candados a tu cuenta: además de la clave, te piden un código que llega a tu celular. Activala en tus redes."]],
+q:[["¿Cuál es la clave más segura?","Una frase larga con números y símbolos, solo para esa cuenta","Mi nombre y mi año de nacimiento","12345678"],
+["Te llega: “¡Ganaste un premio! Entrá a este link en 5 minutos”. ¿Qué hacés?","No hago clic, lo borro y aviso","Entro rápido para no perderlo","Se lo reenvío a mis contactos"],
+["Una persona te pide la clave de tu juego para “ayudarte”. ¿Qué hacés?","No la comparto: mis claves son solo mías","Se la paso, total es de confianza","La escribo en un grupo para que la vean"]]},
+{t:"Inteligencia Artificial y noticias falsas",e:"🤖",h:150,s:43,
+c:[["La IA se equivoca","La Inteligencia Artificial (IA) escribe textos y crea imágenes muy convincentes, pero a veces inventa datos. Siempre comprobá lo que dice en otra fuente confiable."],
+["Imágenes y videos falsos","Con IA se pueden crear fotos, voces y videos falsos (se llaman deepfakes). Fijate en detalles raros: manos, sombras, letras o voces extrañas. Buscá si un medio serio lo publicó."],
+["Usá la IA con honestidad","La IA puede ayudarte a estudiar, pero que no piense por vos. Si la usás en una tarea, contalo. Y no escribas tus datos personales en el chat. Tampoco la uses para inventar fotos o videos de otras personas: puede lastimarlas."]],
+q:[["Te llega una imagen increíble de algo que nadie más muestra. ¿Qué hacés?","Busco en medios confiables antes de compartir","La comparto ya, es muy fuerte","Le creo, se ve muy real"],
+["Una IA te da un dato para tu tarea. ¿Qué hacés?","Lo compruebo en un libro o sitio confiable","Lo copio tal cual","Le pido que haga toda la tarea y la entrego"],
+["Para usar un chat de IA, ¿qué NO deberías escribir?","Mi dirección, mi DNI y mis claves","Una duda de matemática","Una idea para una receta"]]},
+{t:"Respeto y cuidado en las redes (ESI)",e:"💜",h:330,s:59,
+c:[["Consentimiento","Consentir es decir “sí” porque querés, sin presión. Para sacar, mandar o compartir una foto tuya o de otra persona hace falta ese sí. Antes de compartir una foto de alguien, pedile permiso, y si te dice que no, ese “no” se respeta. Y cualquiera puede cambiar de idea."],
+["Grooming","El grooming es cuando un adulto se hace pasar por alguien de tu edad o gana tu confianza para pedirte fotos o secretos. Si algo te incomoda: cortá, guardá capturas y contáselo a alguien de confianza."],
+["Buen trato en internet","Internet es un lugar para convivir, como el patio de la escuela. Burlarse, excluir o pasar fotos o chistes de alguien sin su permiso lastima, aunque sea “en broma”. Sumate al buen trato: no compartas, no te rías, apoyá a quien lo sufre y pedí ayuda a una persona adulta. Todas las personas merecemos respeto, sin importar cómo somos ni a quién queremos."]],
+q:[["Alguien te pide una foto íntima y dice: “si me querés, me la mandás”. ¿Qué hacés?","Digo que no, bloqueo y se lo cuento a un adulto de confianza","Se la mando para no discutir","Le mando una más tapada"],
+["Una persona que conociste online te pide que no le cuentes a nadie de sus charlas. Eso es:","Una señal de alerta: tengo que contárselo a alguien","Normal entre amistades","Un secreto lindo que debo guardar"],
+["En el grupo del curso se burlan de alguien por cómo es. ¿Qué hacés?","No sumo burlas, apoyo a esa persona y aviso a un adulto","Me río para no quedar afuera","Comparto el chiste en otros grupos"]]}];
+/* Sonido */
+let AC,mute=false;
+function snd(f,d=.12,t="sine",v=.12,w=0){if(mute||!AC)return;const o=AC.createOscillator(),g=AC.createGain(),a=AC.currentTime+w;o.type=t;o.frequency.value=f;g.gain.setValueAtTime(v,a);g.gain.exponentialRampToValueAtTime(.001,a+d);o.connect(g);g.connect(AC.destination);o.start(a);o.stop(a+d)}
+const seq=(n,d,t,v,s)=>n.forEach((f,i)=>snd(f,d,t,v,i*s));
+const S={step:()=>snd(220,.04,"triangle",.05),coin:()=>{snd(988,.08,"square",.06);snd(1319,.2,"square",.06,.08)},card:()=>seq([523,659,784],.15,"sine",.12,.07),ok:()=>seq([523,659,784,1047],.2,"triangle",.14,.09),bad:()=>{snd(180,.25,"sawtooth",.08);snd(140,.3,"sawtooth",.08,.12)},door:()=>seq([392,523,659,784,1047],.25,"square",.06,.08),win:()=>seq([523,659,784,1047,784,1047,1319],.25,"triangle",.15,.13)};
+const P=[523,659,784,659,587,740,880,740];let bi=0;setInterval(()=>snd(P[bi++%8]/2,.3,"triangle",.03),420);
+$("mu").onclick=()=>{mute=!mute;$("mu").textContent=mute?"🔇":"🔊"};
+/* Laberinto */
+let lv=0,g,px,py,qx,qy,od=0,rep=0,sab=0,av="🦊",mod=false,seen={},inf,dr,dp,dj,cur,Lv,part=[];
+function rng(s){return()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function gen(s){const r=rng(s);g=Array.from({length:H},()=>Array(W).fill("#"));inf={};dr={};dp=[];
+const st=[[1,1]];g[1][1]=".";
+while(st.length){const[x,y]=st[st.length-1],ds=[[2,0],[-2,0],[0,2],[0,-2]].filter(([a,b])=>{const X=x+a,Y=y+b;return X>0&&Y>0&&X<W-1&&Y<H-1&&g[Y][X]=="#"});
+if(!ds.length){st.pop();continue}const[a,b]=ds[Math.floor(r()*ds.length)];g[y+b/2][x+a/2]=".";g[y+b][x+a]=".";st.push([x+a,y+b])}
+const par={"1,1":null},q=[[1,1]];let far;
+while(q.length){const[x,y]=far=q.shift();[[1,0],[-1,0],[0,1],[0,-1]].forEach(([a,b])=>{const k=(x+a)+","+(y+b);if(g[y+b][x+a]!="#"&&!(k in par)){par[k]=x+","+y;q.push([x+a,y+b])}})}
+let k=far.join(","),Q=[];while(k){Q.unshift(k.split(",").map(Number));k=par[k]}
+const n=Q.length,on=new Set(Q.map(String));g[far[1]][far[0]]="E";
+F.forEach((f,j)=>{const i=Math.floor(n*f),[x,y]=Q[i],[a,b]=Q[i-4];g[y][x]="D";dr[x+","+y]=j;dp[j]=[x,y];g[b][a]="i";inf[a+","+b]=j});
+for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++)if(g[y][x]=="."&&!(x==1&&y==1)){const nb=[[1,0],[-1,0],[0,1],[0,-1]].filter(([a,b])=>g[y+b][x+a]!="#").length,pi=Q.findIndex(p=>p[0]==x&&p[1]==y);
+if(nb==1||(pi<0&&r()<.06)||(pi>=0&&pi%7==3))g[y][x]="c"}}
+function init(){Lv=L[lv];gen(Lv.s);px=qx=1;py=qy=1;od=0;ui();size()}
+function avs(){return AV.map(([e,n])=>`<button class="avb${e==av?" sel":""}" data-e="${e}" ${sab<n?"disabled":""} onclick="pick('${e}')">${sab<n?"🔒"+n:e}</button>`).join("")}
+function pick(e){av=e;document.querySelectorAll(".avb").forEach(b=>b.classList.toggle("sel",b.dataset.e==e));S.coin()}
+function ui(){$("lt").textContent=`Nivel ${lv+1} de 4 · ${Lv.t}`;$("st").innerHTML=`<span class="chip">🪙 Monedas ${rep}</span><span class="chip">🧠 Sabiduría ${sab}</span><span class="chip">🔒 Puertas ${od}/3</span>`;$("av").innerHTML=avs()}
+function size(){const cs=Math.max(18,Math.floor(Math.min(innerWidth-28,720)/W));cv.width=W*cs;cv.height=H*cs;bake()}
+function burst(x,y,c,n){const cs=cv.width/W;for(let i=0;i<n;i++){const a=Math.random()*6.28,v=1+Math.random()*3;part.push({x:(x+.5)*cs,y:(y+.5)*cs,vx:Math.cos(a)*v,vy:Math.sin(a)*v-1,l:1,c})}}
+const bg=document.createElement("canvas"),PL=["🌳","🌲","🌴","🌿","🌸","🌻"];
+function leaf(c,x,y,l,a,col){c.save();c.translate(x,y);c.rotate(a);c.fillStyle=col;c.beginPath();c.moveTo(0,0);c.quadraticCurveTo(l*.5,-l*.32,l,0);c.quadraticCurveTo(l*.5,l*.32,0,0);c.fill();c.strokeStyle="rgba(255,255,255,.3)";c.lineWidth=1;c.beginPath();c.moveTo(0,0);c.lineTo(l*.9,0);c.stroke();c.restore()}
+function bush(c,X,Y,s,x,y){let r=(x*73+y*151)%97+3;const R=()=>(r=(r*31+17)%101)/101,v=(x*7+y*3)%3,G=()=>`hsl(${100+R()*50} ${55+R()*15}% ${24+R()*22}%)`;
+c.save();c.beginPath();c.roundRect(X,Y,s,s,s*.2);c.clip();c.fillStyle="hsl(145 45% 13%)";c.fillRect(X,Y,s,s);
+for(let i=0;i<14;i++)leaf(c,X+s*(.2+.6*R()),Y+s*.95,s*(.45+.4*R()),-Math.PI/2+(R()-.5)*2.6,G());
+if(v==1){c.lineWidth=1.5;for(let i=0;i<8;i++){const bx=X+s*(.1+.8*R());c.strokeStyle=G();c.beginPath();c.moveTo(bx,Y+s);c.quadraticCurveTo(bx+(R()-.5)*s*.4,Y+s*.5,bx+(R()-.5)*s*.5,Y+s*(.1+.3*R()));c.stroke()}}
+if(v==2){const col=["#ff5fa2","#ffd23f","#ff8a3d","#c084fc"][(x+y)%4],fx=X+s*(.3+.4*R()),fy=Y+s*.3;c.strokeStyle="#2f7d32";c.lineWidth=2;c.beginPath();c.moveTo(fx,Y+s);c.lineTo(fx,fy);c.stroke();c.fillStyle=col;for(let k=0;k<5;k++){c.beginPath();c.ellipse(fx+Math.cos(k*1.2566)*s*.12,fy+Math.sin(k*1.2566)*s*.12,s*.09,s*.06,k*1.2566,0,7);c.fill()}c.fillStyle="#fff3a0";c.beginPath();c.arc(fx,fy,s*.06,0,7);c.fill()}
+c.restore()}
+function bushOld(c,X,Y,s,x,y){let r=(x*73+y*151)%97;const R=()=>(r=(r*31+17)%101)/101;
+c.fillStyle="hsl(145 55% 16%)";c.beginPath();c.roundRect(X,Y,s,s,s*.25);c.fill();
+for(let i=0;i<9;i++){const ax=X+s*(.15+.7*R()),ay=Y+s*(.15+.7*R()),rr=s*(.2+.12*R()),gr=c.createRadialGradient(ax-rr*.3,ay-rr*.35,rr*.1,ax,ay,rr);gr.addColorStop(0,`hsl(${95+R()*45} 60% ${42+R()*14}%)`);gr.addColorStop(1,`hsl(${135+R()*15} 60% 22%)`);c.fillStyle=gr;c.beginPath();c.arc(ax,ay,rr,0,7);c.fill()}
+if(R()<.4)for(let i=0;i<3;i++){c.fillStyle=["#ff6bd6","#ffd23f","#fff"][(x+y+i)%3];c.beginPath();c.arc(X+s*(.2+.6*R()),Y+s*(.2+.6*R()),s*.06,0,7);c.fill()}}
+function bake(){if(!g)return;const cs=cv.width/W,c=bg.getContext("2d"),h=Lv.h;bg.width=cv.width;bg.height=cv.height;c.textAlign="center";c.textBaseline="middle";
+for(let y=0;y<H;y++)for(let x=0;x<W;x++){const X=x*cs,Y=y*cs;c.fillStyle=`hsl(${h} 60% ${(x+y)%2?80:76}%)`;c.fillRect(X,Y,cs,cs);if(g[y][x]=="#")bush(c,X,Y,cs,x,y)}}
+function draw(t){if(!g)return;const cs=cv.width/W,h=Lv.h;cx.textAlign="center";cx.textBaseline="middle";cx.drawImage(bg,0,0);
+for(let y=0;y<H;y++)for(let x=0;x<W;x++){const p=g[y][x],X=x*cs,Y=y*cs,m=X+cs/2,n=Y+cs/2;
+if(p=="#")continue;
+
+if(p=="c"){cx.save();cx.translate(m,n);cx.scale(Math.abs(Math.cos(t*3+x+y))+.08,1);cx.fillStyle="#ffd23f";cx.strokeStyle="#c98a00";cx.lineWidth=2;cx.beginPath();cx.arc(0,0,cs*.3,0,7);cx.fill();cx.stroke();cx.fillStyle="#ffef9a";cx.beginPath();cx.arc(0,0,cs*.16,0,7);cx.fill();cx.restore()}
+else if(p=="i"){cx.save();cx.translate(m,n);cx.rotate(Math.sin(t*3+x)*.18);cx.font=cs*.8+"px serif";cx.fillText("🚩",0,0);cx.restore()}
+else if(p=="D"){cx.fillStyle=`hsl(${(h+180)%360} 85% ${50+8*Math.sin(t*5)}%)`;cx.beginPath();cx.roundRect(X+2,Y+2,cs-4,cs-4,6);cx.fill();cx.font=cs*.6+"px serif";cx.fillText("🔒",m,n)}
+else if(p=="E"){cx.fillStyle="#2a1450";cx.beginPath();cx.arc(m,n,cs*.47,0,7);cx.fill();cx.shadowBlur=18;for(let k=0;k<3;k++){cx.strokeStyle=`hsl(${(t*140+k*70)%360} 95% 65%)`;cx.shadowColor=cx.strokeStyle;cx.lineWidth=3;cx.beginPath();cx.arc(m,n,cs*(.16+.12*k)+Math.sin(t*5+k)*2,0,7);cx.stroke()}cx.shadowBlur=0;cx.font=cs*.5+"px serif";cx.fillText("🌟",m,n)}}
+qx+=(px-qx)*.3;qy+=(py-qy)*.3;const ux=(qx+.5)*cs,uy=(qy+.5)*cs;cx.fillStyle="rgba(0,0,0,.25)";cx.beginPath();cx.ellipse(ux,uy+cs*.38,cs*.3,cs*.1,0,0,7);cx.fill();cx.strokeStyle="#ffd23f";cx.lineWidth=3;cx.fillStyle="rgba(255,255,255,.7)";cx.beginPath();cx.arc(ux,uy,cs*(.48+.04*Math.sin(t*5)),0,7);cx.fill();cx.stroke();cx.font=cs*.9+"px serif";cx.fillText(av,ux,uy+Math.sin(t*6)*2);
+part=part.filter(p=>p.l>0);part.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.12;p.l-=.025;cx.globalAlpha=Math.max(p.l,0);cx.fillStyle=p.c;cx.fillRect(p.x,p.y,5,5)});cx.globalAlpha=1}
+function loop(t){draw(t/1000);requestAnimationFrame(loop)}
+/* Ventanas */
+function pop(h){$("bx").innerHTML=h;$("mo").hidden=false;mod=true}
+function hide(){$("mo").hidden=true;mod=false}
+function intro(first){pop(`<div class="big">${Lv.e}</div><h3>Nivel ${lv+1}: ${Lv.t}</h3><p>Encontrá la salida 🌟. En el camino hay 🚩 banderas con información, 🪙 monedas escondidas y 3 puertas 🔒 con desafíos.</p>`+(first?`<p>Para moverte: usá las flechas del teclado, los botones o deslizá el dedo por el laberinto. El sonido está activado 🔊.</p><p>Elegí tu animal:</p><div>${avs()}</div>`:"")+`<button onclick="go()">¡Jugar!</button>`)}
+function go(){AC=AC||new(window.AudioContext||window.webkitAudioContext)();AC.resume();hide()}
+function card(j){const c=Lv.c[j];pop(`<div class="big">🚩</div><h3>${c[0]}</h3><p>${c[1]}</p><button onclick="hide()">¡Entendido!</button>`)}
+function quiz(j){dj=j;const q=Lv.q[j];cur=q.slice(1).map((t,i)=>[t,!i]).sort(()=>Math.random()-.5);pop(`<div class="big">🔒</div><h3>Puerta ${j+1} de 3</h3><p>${q[0]}</p>`+cur.map((o,i)=>`<button class="o" onclick="ans(${i})">${o[0]}</button>`).join(""))}
+function ans(i){if(cur[i][1]){sab+=20;od++;const[x,y]=dp[dj];g[y][x]=".";S.ok();setTimeout(S.door,350);burst(x,y,"#5eead4",26);
+pop(`<div class="big">🎉</div><h3>¡Correcto! Puerta abierta</h3><p>${["¡Muy bien!","¡Vas genial!","¡Gran trabajo!"][dj]} Seguí por el camino.</p><button onclick="hide()">Seguir</button>`);ui()}
+else{S.bad();const c=Lv.c[dj];pop(`<div class="big">🤔</div><h3>Casi… probá otra vez</h3><p>Equivocarse es parte de aprender. Leé este consejo y volvé a intentar:</p><p><b>${c[0]}:</b> ${c[1]}</p><button onclick="quiz(${dj})">Reintentar</button>`)}}
+function end(){S.win();let n=0;const iv=setInterval(()=>{burst(Math.random()*W|0,Math.random()*H|0,["#ffd23f","#ff6bd6","#5eead4"][n%3],16);if(++n>16)clearInterval(iv)},150);
+if(lv<3)pop(`<div class="big">🌟</div><h3>¡Encontraste la salida!</h3><p>💡 Consejo: ${TIPS[lv]}</p><button onclick="nxt()">Siguiente nivel ▶</button>`);
+else{const m=sab>=300?"🥇 Medalla de oro":sab>=200?"🥈 Medalla de plata":"🥉 Medalla de bronce";
+pop(`<div class="big">🏆</div><h3>¡Saliste del laberinto!</h3><p>${m}<br>🪙 ${rep} monedas · 🧠 ${sab} de sabiduría</p><p>💡 ${TIPS[3]}</p><p>Para charlar en clase:<br>• ¿Qué desafío te costó más?<br>• ¿Qué vas a cambiar en tus redes?<br>• ¿A quién le pedirías ayuda si algo te incomoda?</p><button onclick="rst()">Jugar de nuevo</button>`)}}
+function nxt(){lv++;init();intro(false)}
+function rst(){lv=0;rep=0;sab=0;seen={};init();intro(true)}
+/* Movimiento */
+function mv(dx,dy){if(mod||!g)return;const x=px+dx,y=py+dy,t=g[y][x];if(t=="#")return;
+if(t=="D"){quiz(dr[x+","+y]);return}
+px=x;py=y;S.step();
+if(t=="c"){rep+=10;g[y][x]=".";S.coin();burst(x,y,"#ffd23f",10)}
+if(t=="i"){const j=inf[x+","+y],id=lv+"."+j;if(!seen[id]){seen[id]=1;sab+=10}S.card();card(j)}
+ui();if(t=="E")end()}
+addEventListener("keydown",e=>{const d={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],w:[0,-1],s:[0,1],a:[-1,0],d:[1,0]}[e.key];if(d){e.preventDefault();mv(...d)}});
+let sx,sy;cv.addEventListener("touchstart",e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
+cv.addEventListener("touchend",e=>{const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.max(Math.abs(dx),Math.abs(dy))>20)Math.abs(dx)>Math.abs(dy)?mv(Math.sign(dx),0):mv(0,Math.sign(dy))});
+addEventListener("resize",size);
+init();intro(true);requestAnimationFrame(loop);
+</script></body></html>
